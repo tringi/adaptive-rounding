@@ -5,11 +5,11 @@
 
     #include "around.h"
     
-    auto r0 = around (1.000456);      // 1.0
-    auto r1 = around (27.2999999);    // 27.3
-    auto r2 = around (27.2349999);    // 27.235
-    auto r3 = around<3> (27.1993999); // 27.1994
-    auto r4 = around<2> (27.1993999); // 27.2
+    auto r0 = ext::around (1.000456);      // 1.0
+    auto r1 = ext::around (27.2999999);    // 27.3
+    auto r2 = ext::around (27.2349999);    // 27.235
+    auto r3 = ext::around<3> (27.1993999); // 27.1994
+    auto r4 = ext::around<2> (27.1993999); // 27.2
 
 ## Description
 
