@@ -1,16 +1,22 @@
-# `around` adaptive rounding operation
-*attempts to perform nice rounding of a floating point number, like a human would do*
+# `around` — adaptive rounding operation
+*Attempts to perform nice rounding of a floating point number, like a human would do.*
 
-**#include "[around.h](around.h)"**
+## Usage: [around.h](around.h)
 
-    template <std::size_t precision = 3>
-    double around (double value);
+    #include "around.h"
+    
+    auto r0 = around (1.000456);      // 1.0
+    auto r1 = around (27.2999999);    // 27.3
+    auto r2 = around (27.2349999);    // 27.235
+    auto r3 = around<3> (27.1993999); // 27.1994
+    auto r4 = around<2> (27.1993999); // 27.2
 
 ## Description
 
-## Sample results
+The function searches for N consecutive '0' or '9' characters in the decimal part of
+a string representation of a double-precision floating-point value.
 
-## Precision
+The precision, N, is 3 by default, and it's the first and only template parameter.
 
 ## Possible use cases
 
