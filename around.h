@@ -27,7 +27,7 @@ namespace ext {
     // around
     //  - adaptive rounding operation; attempts nice rounding of a floating point number, like a human would do
     //
-    template <std::size_t precision = 3>
+    template <std::size_t precision = 4>
     double around (double value) {
 
         char string [64];
