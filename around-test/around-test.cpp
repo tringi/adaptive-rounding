@@ -18,13 +18,23 @@ void test (double value, double expected) {
         success = false;
     }
 
-    std::printf ("%.*f\t=> %f\t\"%s\"\t%s // %u '%s'\n",
+    char stringtestIN [64];
+    char stringtestOUT [64];
+    std::snprintf (stringtestIN, 64, "%.64f", value);
+    ext::around <precision> (stringtestIN, stringtestOUT, 64);
+
+    if (std::strcmp (stringtestOUT, formatted) != 0) {
+        success = false;
+    }
+
+    std::printf ("%.*f\t=> %f\t\"%s\"\t%s // %u '%s' '%s'\n",
                  32, value, 
                  rounded,
                  std::to_string (rounded).c_str (),
                  success ? "OK" : "FAILED",
                  (unsigned int) ext::around_suggest <precision> (value),
-                 formatted);
+                 formatted,
+                 stringtestOUT);
 
     if (success)
         ++passed;
