@@ -1,5 +1,5 @@
 # `around` — adaptive rounding operation
-*Attempts to perform nice rounding of a floating point number, like a human would do.*
+*Attempts to perform nice rounding of a floating-point number, like a human would do.*
 
 ## Usage: [around.h](around.h)
 
@@ -40,7 +40,7 @@ The precision, N, is 4 by default, and it's the first and only template paramete
 
 ## Possible use cases
 
-* adjusting after accumulating small floating point arithmetics errors
+* adjusting after accumulating small floating-point arithmetics errors
 * improving legibility/scannability of numeric values on screen
 
 ## API details
@@ -81,7 +81,7 @@ Rounded string representation of `value` is stored as string into the `buffer` o
 
 Rounds `value` to suggested precision and returns new number.
 
-**Note:** By nature of floating points, new imprecisions can be introducted.
+**Note:** By nature of floating-point numbers, new imprecisions can be introducted.
 
     template <std::size_t precision = 4>
     double around (double value,
