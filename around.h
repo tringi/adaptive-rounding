@@ -24,7 +24,9 @@ namespace ext {
         };
 
         // suggestion
-        //  - 
+        //  - internal helper, result of 'suggest' function
+        //  - 'precision' is the determined/suggested precision for rounding
+        //  - 'decimals' points to first decimal digit in the input string
         //
         struct suggestion {
             std::size_t precision = (std::size_t) -1;
@@ -56,6 +58,7 @@ namespace ext {
                     result.precision = p0 - p;
                 }
             } else {
+                result.decimals = std::strchr (string, '\0');
                 result.precision = 0;
             }
             return result;
