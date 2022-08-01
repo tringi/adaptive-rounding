@@ -83,10 +83,10 @@ namespace ext {
             auto n = suggested.precision;
             auto decimals = suggested.decimals;
 
-            if (n != ~0) {
-                if (n < minimum) n = minimum;
-                if (n > maximum) n = maximum;
+            if (n < minimum) n = minimum;
+            if (n > maximum) n = maximum;
 
+            if (n != (std::size_t) -1) {
                 switch (decimals [n]) {
                     case '0':
                         if (n == 0) {
@@ -132,7 +132,7 @@ namespace ext {
 
     // around_suggest
     //  - suggests rounding precision
-    //  - returns: suggested precision or ~0 
+    //  - returns: suggested precision or (std::size_t) -1 
     //
     template <std::size_t precision = 4>
     std::size_t around_suggest (double value) {
@@ -142,7 +142,7 @@ namespace ext {
 
     // around_suggest
     //  - suggests rounding precision
-    //  - returns: suggested precision or ~0 
+    //  - returns: suggested precision or (std::size_t) -1 
     //
     template <std::size_t precision = 4>
     std::size_t around_suggest (const char * value) {
@@ -156,7 +156,7 @@ namespace ext {
     //
     template <std::size_t precision = 4>
     double around (double value,
-                   std::size_t minimum = 0, std::size_t maximum = ~0) {
+                   std::size_t minimum = 0, std::size_t maximum = (std::size_t) -1) {
 
         auto n = around_suggest <precision> (value);
         if (n < minimum) n = minimum;
@@ -174,7 +174,7 @@ namespace ext {
     //
     template <std::size_t precision = 4>
     void around (const char * value, char * buffer, std::size_t length,
-                 std::size_t minimum = 0, std::size_t maximum = ~0) {
+                 std::size_t minimum = 0, std::size_t maximum = (std::size_t) -1) {
 
         using namespace around_detail;
 
@@ -202,7 +202,7 @@ namespace ext {
     //
     template <std::size_t precision = 4>
     void around (double value, char * buffer, std::size_t length,
-                 std::size_t minimum = 0, std::size_t maximum = ~0) {
+                 std::size_t minimum = 0, std::size_t maximum = (std::size_t) -1) {
         
         using namespace around_detail;
 
