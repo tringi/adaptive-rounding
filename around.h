@@ -62,7 +62,7 @@ namespace ext {
         }
 
         // suggest
-        //  - internal helper, suggests rounding precision for the floating point value
+        //  - internal helper, suggests rounding precision for the floating-point value
         //  - converts it to string and uses the decision above
         //
         template <std::size_t precision = 4>
@@ -74,7 +74,9 @@ namespace ext {
         }
 
         // round
-        //  - 
+        //  - internal helper, performs the actual rounding on the string
+        //  - 'suggested.decimals' MUST point into valid string representation
+        //    of the floating-point value PREFIXED with space character
         //
         inline void round (suggestion suggested,
                            std::size_t minimum, std::size_t maximum) {
@@ -148,7 +150,7 @@ namespace ext {
     }
 
     // around
-    //  - adaptive rounding operation; attempts nice rounding of a floating point number, like a human would do
+    //  - adaptive rounding operation; attempts nice rounding of a floating-point number, like a human would do
     //  - rounds 'value' to 'around_suggest'ed precision and returns it
     //  - prefer string output versions of the call
     //
@@ -165,7 +167,7 @@ namespace ext {
     }
 
     // around
-    //  - adaptive rounding operation; attempts nice rounding of a floating point number, like a human would do
+    //  - adaptive rounding operation; attempts nice rounding of a floating-point number, like a human would do
     //  - 'value' must be in "-123.456" format, no extra spaces, simple minus, dot for decimal separator
     //  - rounded result is stored as string into 'buffer'
     //     - minimum/maximum can limit the number of actual decimals should the algorithm decide outside of the range
@@ -194,7 +196,7 @@ namespace ext {
     }
 
     // around
-    //  - adaptive rounding operation; attempts nice rounding of a floating point number, like a human would do
+    //  - adaptive rounding operation; attempts nice rounding of a floating-point number, like a human would do
     //  - rounded result is stored as string into 'buffer'
     //     - minimum/maximum can limit the number of actual decimals should the algorithm decide outside of the range
     //
