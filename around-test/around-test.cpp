@@ -4,15 +4,15 @@
 auto tests = 0u;
 auto passed = 0u;
 
-template <std::size_t precision = 4>
-void test (double value, double expected) {
+void test (double value, double expected, std::size_t precision = 4, std::size_t minimum = 3, std::size_t maximum = 12) {
     ++tests;
 
-    auto rounded = ext::around <precision> (value);
+    auto rounded = ext::around (value, precision);
     bool success = rounded == expected;
 
     char formatted [64];
-    ext::around <precision> (value, formatted, sizeof formatted);
+    auto nfmtd = ext::around (value, formatted, sizeof formatted, precision, minimum, maximum);
+    formatted [nfmtd] = '\0';
 
     if (std::strtod (formatted, nullptr) != expected) {
         success = false;
@@ -21,20 +21,22 @@ void test (double value, double expected) {
     char stringtestIN [64];
     char stringtestOUT [64];
     std::snprintf (stringtestIN, 64, "%.64f", value);
-    ext::around <precision> (stringtestIN, stringtestOUT, 64);
+    auto stringtestN = ext::around (stringtestIN, stringtestOUT, 64, precision, minimum, maximum);
+    stringtestOUT [stringtestN] = '\0';
 
     if (std::strcmp (stringtestOUT, formatted) != 0) {
         success = false;
     }
 
-    std::printf ("%.*f\t=> %f\t\"%s\"\t%s // %u '%s' '%s'\n",
+    std::printf ("%.*f\t=> %f\t\"%s\"\t%s // %u => %u // '%s' (%u) '%s' (%u)\n",
                  32, value, 
                  rounded,
                  std::to_string (rounded).c_str (),
                  success ? "OK" : "FAILED",
-                 (unsigned int) ext::around_suggest <precision> (value),
-                 formatted,
-                 stringtestOUT);
+                 (unsigned) precision,
+                 (unsigned int) ext::around_suggest (value, precision),
+                 formatted, (unsigned) nfmtd, 
+                 stringtestOUT, (unsigned) stringtestN);
 
     if (success)
         ++passed;
@@ -50,8 +52,8 @@ int main () {
     test (1.0000456, 1.0);
     test (27.29999999, 27.3);
     test (27.23499999, 27.235);
-    test<3> (27.19939999, 27.1994);
-    test<2> (27.19939999, 27.2);
+    test (27.19939999, 27.1994, 3);
+    test (27.19939999, 27.2, 2);
 
     test (-19.299999, -19.3);
     test (-20.799999, -20.8);
@@ -70,6 +72,8 @@ int main () {
     test (-999.9999, -1000.0);
     test (-599.9999, -600.0);
     test (-1099.9999, -1100.0);
+    test (9.0999999, 9.1);
+    test (-9.0999999, -9.1);
 
     test (7.299990006565, 7.3);
     test (12345678.299992, 12345678.3);
