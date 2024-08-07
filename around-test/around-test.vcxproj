@@ -156,6 +156,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="around-test.cpp" />
+    <ClCompile Include="around.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\around.h" />
