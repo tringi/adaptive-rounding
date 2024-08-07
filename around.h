@@ -8,21 +8,6 @@ namespace ext {
     //
     namespace around_detail {
 
-        // needle
-        //  - generates static NUL-terminated N-character long string of C characters
-        //  - example: needle<3,'a'>::string is static NUL-terminated string of three 'a' characters, i.e: "aaa"
-        //
-        template <std::size_t N, char C>
-        struct needle {
-            constexpr needle () {
-                for (std::size_t i = 0; i != N; ++i) {
-                    string [i] = C;
-                }
-                string [N] = '\0';
-            }
-            char string [N + 1];
-        };
-
         // suggestion
         //  - internal helper, result of 'suggest' function
         //  - 'precision' is the determined/suggested precision for rounding
@@ -37,16 +22,26 @@ namespace ext {
         //  - internal helper, suggests rounding precision for decimal number passed as string
         //  - this is the nutshell of the algorithm
         //
-        template <std::size_t precision = 4>
-        suggestion suggest (char * string) {
+        inline suggestion suggest (char * string, std::size_t precision) {
             suggestion result;
 
             if (auto p = std::strchr (string, '.')) {
                 ++p;
                 result.decimals = p;
 
-                auto p9 = std::strstr (p, around_detail::needle <precision, '9'> ().string);
-                auto p0 = std::strstr (p, around_detail::needle <precision, '0'> ().string);
+                char needle [2][16];
+                if (precision > 15) {
+                    precision = 15;
+                }
+                for (std::size_t i = 0; i != precision; ++i) {
+                    needle [0][i] = '9';
+                    needle [1][i] = '0';
+                }
+                needle [0][precision] = '\0';
+                needle [1][precision] = '\0';
+
+                auto p9 = std::strstr (p, needle [0]);
+                auto p0 = std::strstr (p, needle [1]);
 
                 if (p0 && p9) {
                     result.precision = std::min (p0 - p, p9 - p);
@@ -68,10 +63,9 @@ namespace ext {
         //  - internal helper, suggests rounding precision for the floating-point value
         //  - converts it to string and uses the decision above
         //
-        template <std::size_t precision = 4>
-        suggestion suggest (double value, char * buffer, std::size_t length) {
+        inline suggestion suggest (double value, char * buffer, std::size_t length, std::size_t precision) {
             if (std::snprintf (buffer, length, "%.*f", (unsigned int) length, value)) {
-                return suggest <precision> (buffer);
+                return suggest (buffer, precision);
             } else
                 return suggestion {};
         }
@@ -81,23 +75,26 @@ namespace ext {
         //  - 'suggested.decimals' MUST point into valid string representation
         //    of the floating-point value PREFIXED with space character
         //
-        inline void round (suggestion suggested,
-                           std::size_t minimum, std::size_t maximum) {
+        inline char * round (suggestion suggested,
+                             std::size_t minimum, std::size_t maximum) {
             auto n = suggested.precision;
             auto decimals = suggested.decimals;
 
-            if (n < minimum) n = minimum;
-            if (n > maximum) n = maximum;
+            if (n > maximum) {
+                n = maximum;
+            }
 
             if (n != (std::size_t) -1) {
                 switch (decimals [n]) {
                     case '0':
-                        if (n == 0) {
-                            decimals [-1] = '\0';
-                        } else {
-                            decimals [n] = '\0';
+                        if (n < minimum) {
+                            n = minimum;
                         }
-                        break;
+                        if (n == 0) {
+                            return &decimals [-1];
+                        } else {
+                            return &decimals [n];
+                        }
 
                     case '9':
                         do {
@@ -105,7 +102,16 @@ namespace ext {
                         } while (decimals [n] == '9');
 
                         if (decimals [n] == '.') {
-                            decimals [n] = '\0';
+                            char * endptr = nullptr;
+                            if (minimum) {
+                                std::size_t i = 1;
+                                while (i != minimum + 1) {
+                                    decimals [n + i++] = '0';
+                                }
+                                endptr = &decimals [n + i];
+                            } else {
+                                endptr = &decimals [n];
+                            }
 
                             --n;
                             while (decimals [n] == '9') {
@@ -123,13 +129,17 @@ namespace ext {
                                 default:
                                     ++decimals [n];
                             }
+                            return endptr;
                         } else {
-                            decimals [n + 0]++;
-                            decimals [n + 1] = '\0';
+                            decimals [n++]++;
+                            while (n < minimum) {
+                                decimals [n++] = '0';
+                            }
+                            return &decimals [n];
                         }
-                        break;
                 }
             }
+            return &decimals [n];
         }
     }
 
@@ -137,19 +147,17 @@ namespace ext {
     //  - suggests rounding precision
     //  - returns: suggested precision or (std::size_t) -1 
     //
-    template <std::size_t precision = 4>
-    std::size_t around_suggest (double value) {
+    inline std::size_t around_suggest (double value, std::size_t precision) {
         char string [64];
-        return around_detail::suggest <precision> (value, string, sizeof string).precision;
+        return around_detail::suggest (value, string, sizeof string, precision).precision;
     }
 
     // around_suggest
     //  - suggests rounding precision
     //  - returns: suggested precision or (std::size_t) -1 
     //
-    template <std::size_t precision = 4>
-    std::size_t around_suggest (const char * value) {
-        return around_detail::suggest <precision> (value).precision;
+    inline std::size_t around_suggest (const char * value, std::size_t precision) {
+        return around_detail::suggest ((char *) value, precision).precision;
     }
 
     // around
@@ -157,11 +165,10 @@ namespace ext {
     //  - rounds 'value' to 'around_suggest'ed precision and returns it
     //  - prefer string output versions of the call
     //
-    template <std::size_t precision = 4>
-    double around (double value,
-                   std::size_t minimum = 0, std::size_t maximum = (std::size_t) -1) {
+    inline double around (double value, std::size_t precision = 4,
+                          std::size_t minimum = 0, std::size_t maximum = (std::size_t) -1) {
 
-        auto n = around_suggest <precision> (value);
+        auto n = around_suggest (value, precision);
         if (n < minimum) n = minimum;
         if (n > maximum) n = maximum;
 
@@ -172,12 +179,12 @@ namespace ext {
     // around
     //  - adaptive rounding operation; attempts nice rounding of a floating-point number, like a human would do
     //  - 'value' must be in "-123.456" format, no extra spaces, simple minus, dot for decimal separator
-    //  - rounded result is stored as string into 'buffer'
+    //  - rounded result is stored as string into 'buffer' (NOT NUL-terminated)
     //     - minimum/maximum can limit the number of actual decimals should the algorithm decide outside of the range
+    //  - returns number of characters in the final string
     //
-    template <std::size_t precision = 4>
-    void around (const char * value, char * buffer, std::size_t length,
-                 std::size_t minimum = 0, std::size_t maximum = (std::size_t) -1) {
+    inline std::size_t around (const char * value, char * buffer, std::size_t length, std::size_t precision = 4,
+                               std::size_t minimum = 0, std::size_t maximum = (std::size_t) -1) {
 
         using namespace around_detail;
 
@@ -190,34 +197,40 @@ namespace ext {
             buffer [0] = ' ';
             buffer [length - 1] = '\0';
 
-            round (suggest <precision> (buffer + 1), minimum, maximum);
+            auto rv = round (suggest (buffer + 1, precision), minimum, maximum) - buffer;
 
             if (buffer [0] == ' ') {
                 std::memmove (&buffer [0], &buffer [1], length - 1);
+                --rv;
             }
-        }
+            return rv;
+        } else
+            return 0;
     }
 
     // around
     //  - adaptive rounding operation; attempts nice rounding of a floating-point number, like a human would do
-    //  - rounded result is stored as string into 'buffer'
+    //  - rounded result is stored as string into 'buffer' (NOT NUL-terminated)
     //     - minimum/maximum can limit the number of actual decimals should the algorithm decide outside of the range
+    //  - returns number of characters in the final string
     //
-    template <std::size_t precision = 4>
-    void around (double value, char * buffer, std::size_t length,
-                 std::size_t minimum = 0, std::size_t maximum = (std::size_t) -1) {
+    inline std::size_t around (double value, char * buffer, std::size_t length, std::size_t precision = 4,
+                               std::size_t minimum = 0, std::size_t maximum = (std::size_t) -1) {
         
         using namespace around_detail;
 
         if (length > 1) {
             buffer [0] = ' ';
 
-            round (suggest <precision> (value, buffer + 1, length - 1), minimum, maximum);
+            auto rv = round (suggest (value, buffer + 1, length - 1, precision), minimum, maximum) - buffer;
 
             if (buffer [0] == ' ') {
                 std::memmove (&buffer [0], &buffer [1], length - 1);
+                --rv;
             }
-        }
+            return rv;
+        } else
+            return 0;
     }
 
 }
