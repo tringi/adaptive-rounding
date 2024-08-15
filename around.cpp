@@ -1,4 +1,7 @@
 #include "around.h"
+#include <algorithm>
+#include <cstring>
+#include <cmath>
 
 // around_detail
 //  - implementation details for 'around' function
